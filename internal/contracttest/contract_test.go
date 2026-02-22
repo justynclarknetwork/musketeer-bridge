@@ -116,7 +116,7 @@ func latestRunDir(t *testing.T, runsDir string) string {
 	return latest
 }
 
-func TestGoodJSON(t *testing.T) {
+func TestContractGoodJSON(t *testing.T) {
 	workdir := t.TempDir()
 	srv, runsDir := startServer(t, workdir, "good-json", 1000)
 	defer srv.Close()
@@ -137,7 +137,7 @@ func TestGoodJSON(t *testing.T) {
 	}
 }
 
-func TestBadJSONText(t *testing.T) {
+func TestContractBadJSONText(t *testing.T) {
 	workdir := t.TempDir()
 	srv, runsDir := startServer(t, workdir, "bad-json-text", 1000)
 	defer srv.Close()
@@ -154,7 +154,7 @@ func TestBadJSONText(t *testing.T) {
 	}
 }
 
-func TestBadJSONMulti(t *testing.T) {
+func TestContractBadJSONMulti(t *testing.T) {
 	workdir := t.TempDir()
 	srv, runsDir := startServer(t, workdir, "bad-json-multi", 1000)
 	defer srv.Close()
@@ -168,7 +168,7 @@ func TestBadJSONMulti(t *testing.T) {
 	}
 }
 
-func TestBadJSONArray(t *testing.T) {
+func TestContractBadJSONArray(t *testing.T) {
 	workdir := t.TempDir()
 	srv, runsDir := startServer(t, workdir, "bad-json-array", 1000)
 	defer srv.Close()
@@ -182,13 +182,28 @@ func TestBadJSONArray(t *testing.T) {
 	}
 }
 
-func TestTimeout(t *testing.T) {
+func TestContractTimeout(t *testing.T) {
 	workdir := t.TempDir()
 	srv, runsDir := startServer(t, workdir, "hang", 100)
 	defer srv.Close()
 	r := postRun(t, srv.URL, workdir)
 	if r.Error == nil || r.Error.Code != "ERR_TIMEOUT" || r.ExitCode == 0 {
 		t.Fatalf("expected timeout with nonzero exit, got %+v", r)
+	}
+	rd := latestRunDir(t, runsDir)
+	if _, err := os.Stat(filepath.Join(rd, "result.json")); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestContractAllowlistRejected(t *testing.T) {
+	workdir := t.TempDir()
+	srv, runsDir := startServer(t, workdir, "good-json", 1000)
+	defer srv.Close()
+	outside := t.TempDir()
+	r := postRun(t, srv.URL, outside)
+	if r.Error == nil || r.Error.Code != "ERR_CWD_NOT_ALLOWLISTED" || r.ExitCode == 0 {
+		t.Fatalf("expected ERR_CWD_NOT_ALLOWLISTED with nonzero exit, got %+v", r)
 	}
 	rd := latestRunDir(t, runsDir)
 	if _, err := os.Stat(filepath.Join(rd, "result.json")); err != nil {

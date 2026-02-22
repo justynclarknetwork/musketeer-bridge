@@ -82,3 +82,14 @@ Logs are written for every `POST /run`, including validation rejections.
 - add artifact detection and sha256 hashing
 - add semver parsing for version selection
 - add optional auth token even on localhost
+
+## Contract tests
+
+Contract tests lock three invariants:
+- strict JSON parsing behavior for json_mode tools
+- exit_code always present in responses
+- run logs always written for POST /run (including failures)
+
+Run:
+- `go test ./...`
+- `go test ./... -run Contract -count=1`
