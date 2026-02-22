@@ -1,6 +1,6 @@
 # musketeer-bridge
 
-Local localhost daemon that exposes a static tool registry and executes allowlisted CLI tools with JSON-only HTTP responses.
+Local localhost daemon that exposes a static tool registry and deterministic CLI execution with allowlisted cwd, strict JSON mode, and on-disk run logs.
 
 ## Config
 
@@ -12,12 +12,14 @@ Example:
 {
   "listen_addr": "127.0.0.1:18789",
   "allowlisted_roots": ["/Users/justin/Projects"],
-  "env_allowlist": ["PATH","HOME","USER","SHELL","TERM"],
+  "env_allowlist": ["PATH", "HOME", "USER", "SHELL", "TERM"],
   "max_runtime_ms": 600000,
   "registry_dir": "~/.musketeer/registry",
   "runs_dir": "~/.musketeer/runs"
 }
 ```
+
+If `allowlisted_roots` is empty, all run requests are rejected (`ERR_CWD_NOT_ALLOWLISTED`).
 
 Env overrides:
 - `MUSKETEER_BRIDGE_LISTEN_ADDR`
@@ -28,13 +30,12 @@ Env overrides:
 
 `~/.musketeer/registry/tools/<name>/<version>/tool.json`
 
-`tool.json` fields:
+`tool.json` required fields:
 - `name`
 - `version`
 - `description`
 - `json_mode`
 - `exec.argv`
-- `exec.args_mapping` (optional)
 
 ## Endpoints
 
@@ -50,9 +51,11 @@ All responses are JSON and include `exit_code`.
 `~/.musketeer/runs/YYYY/MM/DD/<run_id>/`
 - `request.json`
 - `resolved.json`
-- `stdout.json` (when parsed JSON exists)
+- `stdout.json` (only when parsed JSON exists)
 - `stderr.txt`
 - `result.json`
+
+Logs are written for every `POST /run`, including validation rejections.
 
 ## Security model
 
@@ -60,4 +63,22 @@ All responses are JSON and include `exit_code`.
 - cwd must be inside allowlisted roots
 - env passed through allowlist only
 - stdout and stderr captured separately
-- json-mode stdout must be exactly one JSON object
+- when `json_mode=true` and `mode=json`, stdout must be exactly one JSON object
+
+## Acceptance commands
+
+1. `cd ./musketeer-bridge && go build -o target/musketeer-bridge ./cmd/musketeer-bridge`
+2. `mkdir -p ~/.musketeer/registry && cp -R registry-examples/tools ~/.musketeer/registry/`
+3. `MUSKETEER_BRIDGE_LISTEN_ADDR=127.0.0.1:18789 ./target/musketeer-bridge`
+4. `curl -s http://127.0.0.1:18789/v1/health`
+5. `curl -s http://127.0.0.1:18789/v1/tools`
+6. `curl -s http://127.0.0.1:18789/v1/tools/loopexec`
+7. `curl -s -X POST http://127.0.0.1:18789/v1/tools/loopexec/run -H 'content-type: application/json' -d '{"version":"0.1.0","args":{},"cwd":".","env":{},"mode":"json","client":{"name":"manual"}}'`
+
+## TODO (not executed)
+
+- add optional streaming stderr endpoint or SSE
+- add MCP adapter layer (discovery and call forwarding)
+- add artifact detection and sha256 hashing
+- add semver parsing for version selection
+- add optional auth token even on localhost

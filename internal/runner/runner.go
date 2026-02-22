@@ -17,9 +17,12 @@ import (
 )
 
 type RunRequest struct {
-	Mode string                 `json:"mode"`
-	Cwd  string                 `json:"cwd"`
-	Args map[string]interface{} `json:"args"`
+	Version string                 `json:"version,omitempty"`
+	Mode    string                 `json:"mode"`
+	Cwd     string                 `json:"cwd"`
+	Env     map[string]string      `json:"env,omitempty"`
+	Args    map[string]interface{} `json:"args"`
+	Client  map[string]interface{} `json:"client,omitempty"`
 }
 
 type RunResult struct {
@@ -120,8 +123,15 @@ func Run(spec registry.ToolSpec, req RunRequest, roots []string, envAllow []stri
 	cmd := exec.CommandContext(ctx, argv[0], argv[1:]...)
 	cmd.Dir = req.Cwd
 	env := []string{}
+	allow := map[string]bool{}
 	for _, k := range envAllow {
+		allow[k] = true
 		if v, ok := os.LookupEnv(k); ok {
+			env = append(env, k+"="+v)
+		}
+	}
+	for k, v := range req.Env {
+		if allow[k] {
 			env = append(env, k+"="+v)
 		}
 	}

@@ -23,6 +23,14 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 	_ = json.NewEncoder(w).Encode(body)
 }
 
+func (a *API) writeRunLog(req any, resolved any, stdoutJSON any, stderr string, result any) {
+	_, dir, err := a.Log.NewRunDir()
+	if err != nil {
+		return
+	}
+	a.Log.WriteAll(dir, req, resolved, stdoutJSON, stderr, result)
+}
+
 func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet && r.URL.Path == "/v1/health" {
 		writeJSON(w, 200, map[string]any{"ok": true, "exit_code": 0})
@@ -40,6 +48,39 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/v1/tools/"), "/")
 		name := parts[0]
 		spec, ok := a.Reg.Tools[name]
+		if len(parts) == 2 && parts[1] == "run" && r.Method == http.MethodPost {
+			var req runner.RunRequest
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				res := map[string]any{"exit_code": 40, "error": map[string]any{"code": "ERR_INVALID_INPUT", "message": "invalid json"}}
+				a.writeRunLog(map[string]any{"raw": "decode_error"}, nil, nil, "", res)
+				writeJSON(w, 400, res)
+				return
+			}
+			if !ok {
+				res := map[string]any{"exit_code": 40, "error": map[string]any{"code": "ERR_TOOL_NOT_FOUND", "message": "tool not found"}}
+				a.writeRunLog(req, nil, nil, "", res)
+				writeJSON(w, 404, res)
+				return
+			}
+			result := runner.Run(spec, req, a.Cfg.AllowlistedRoots, a.Cfg.EnvAllowlist, a.Cfg.MaxRuntimeMs)
+			resp := map[string]any{"exit_code": result.ExitCode, "ok": result.OK, "stdout": result.Stdout, "stderr": result.Stderr}
+			if result.StdoutJS != nil {
+				resp["stdout_json"] = result.StdoutJS
+			}
+			if result.Error != nil {
+				resp["error"] = result.Error
+			}
+			a.writeRunLog(req, spec, result.StdoutJS, result.Stderr, resp)
+			status := 200
+			if result.Error != nil {
+				status = 400
+				if result.ExitCode == 70 {
+					status = 500
+				}
+			}
+			writeJSON(w, status, resp)
+			return
+		}
 		if !ok {
 			res := map[string]any{"exit_code": 40, "error": map[string]any{"code": "ERR_TOOL_NOT_FOUND", "message": "tool not found"}}
 			writeJSON(w, 404, res)
@@ -47,36 +88,6 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if len(parts) == 1 && r.Method == http.MethodGet {
 			writeJSON(w, 200, map[string]any{"tool": spec, "exit_code": 0})
-			return
-		}
-		if len(parts) == 2 && parts[1] == "run" && r.Method == http.MethodPost {
-			var req runner.RunRequest
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-				res := map[string]any{"exit_code": 40, "error": map[string]any{"code": "ERR_INVALID_INPUT", "message": "invalid json"}}
-				writeJSON(w, 400, res)
-				return
-			}
-			runID, dir, _ := a.Log.NewRunDir()
-			result := runner.Run(spec, req, a.Cfg.AllowlistedRoots, a.Cfg.EnvAllowlist, a.Cfg.MaxRuntimeMs)
-			resp := map[string]any{"run_id": runID, "exit_code": result.ExitCode, "ok": result.OK, "stdout": result.Stdout, "stderr": result.Stderr}
-			if result.StdoutJS != nil {
-				resp["stdout_json"] = result.StdoutJS
-			}
-			if result.Error != nil {
-				resp["error"] = result.Error
-			}
-			a.Log.WriteAll(dir, req, spec, result.StdoutJS, result.Stderr, resp)
-			status := 200
-			if result.Error != nil {
-				status = 400
-				if result.Error.Code == "ERR_TOOL_NOT_FOUND" {
-					status = 404
-				}
-				if result.ExitCode == 70 {
-					status = 500
-				}
-			}
-			writeJSON(w, status, resp)
 			return
 		}
 	}
