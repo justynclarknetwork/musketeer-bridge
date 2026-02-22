@@ -93,3 +93,12 @@ Contract tests lock three invariants:
 Run:
 - `go test ./...`
 - `go test ./... -run Contract -count=1`
+
+
+## Registry examples
+
+Versioned examples include:
+- loopexec 0.1.1 strict JSON mode example
+- musketeer 0.1.1 strict JSON mode example
+
+Placeholder versions (0.1.0) are retained for backward reference.

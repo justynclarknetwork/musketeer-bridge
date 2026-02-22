@@ -1,0 +1,19 @@
+{
+  "name": "musketeer",
+  "version": "0.1.1",
+  "description": "Musketeer CLI strict JSON init",
+  "json_mode": true,
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": true
+  },
+  "exec": {
+    "argv": ["musketeer", "init", "--json"],
+    "args_mapping": []
+  }
+}
