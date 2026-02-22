@@ -1,0 +1,10 @@
+{
+  "name": "musketeer",
+  "version": "0.1.0",
+  "description": "Musketeer CLI",
+  "json_mode": false,
+  "exec": {
+    "argv": ["musketeer", "--help"],
+    "args_mapping": []
+  }
+}

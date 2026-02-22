@@ -1,0 +1,10 @@
+{
+  "name": "loopexec",
+  "version": "0.1.0",
+  "description": "Loopexec CLI",
+  "json_mode": false,
+  "exec": {
+    "argv": ["loopexec", "--help"],
+    "args_mapping": []
+  }
+}
