@@ -53,15 +53,14 @@ resp=$(curl -s -X POST "http://127.0.0.1:${PORT}/v1/tools/loopexec/run" -H 'cont
 echo "$resp" | jq -e '.exit_code==0 and (.stdout_json|type=="object") and (.stderr=="")' >/dev/null
 printf 'PASS loopexec json_mode assertions\n'
 
-# musketeer strict json check (success if installed, deterministic error if not)
+# musketeer strict json check
 mresp=$(curl -s -X POST "http://127.0.0.1:${PORT}/v1/tools/musketeer/run" -H 'content-type: application/json' -d '{"version":"0.1.1","args":{},"cwd":"/tmp","env":{},"mode":"json","client":{"name":"smoke"}}')
 echo "$mresp" | jq -e '.exit_code!=null' >/dev/null
-mcode=$(echo "$mresp" | jq -r '.exit_code')
-if [ "$mcode" = "0" ]; then
-  echo "$mresp" | jq -e '(.stdout_json|type=="object") and (.stderr=="")' >/dev/null
+if command -v musketeer >/dev/null 2>&1; then
+  echo "$mresp" | jq -e '.exit_code==0 and (.stdout_json|type=="object") and (.stderr=="")' >/dev/null
   printf 'PASS musketeer json_mode success assertions\n'
 else
-  echo "$mresp" | jq -e '.error.code=="ERR_EXEC_FAILED"' >/dev/null
+  echo "$mresp" | jq -e '.exit_code!=0 and .error.code=="ERR_EXEC_FAILED"' >/dev/null
   printf 'PASS musketeer deterministic error envelope assertions\n'
 fi
 

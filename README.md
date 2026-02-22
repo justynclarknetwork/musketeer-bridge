@@ -102,3 +102,5 @@ Versioned examples include:
 - musketeer 0.1.1 strict JSON mode example
 
 Placeholder versions (0.1.0) are retained for backward reference.
+
+Verified on this host: `musketeer init --json` exits 0, writes exactly one JSON object to stdout, and writes no stderr.
