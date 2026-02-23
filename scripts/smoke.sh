@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PORT=18889
+PORT="${PORT_OVERRIDE:-$(python3 - <<'PY'
+import socket
+s=socket.socket()
+s.bind(('127.0.0.1',0))
+print(s.getsockname()[1])
+s.close()
+PY
+)}"
 export MUSKETEER_BRIDGE_LISTEN_ADDR="127.0.0.1:${PORT}"
 export MUSKETEER_BRIDGE_REGISTRY_DIR="$HOME/.musketeer/registry"
 export MUSKETEER_BRIDGE_RUNS_DIR="$HOME/.musketeer/runs"
@@ -18,7 +25,19 @@ cat > "$HOME/.musketeer/bridge.json" <<JSON
 JSON
 rm -rf "$HOME/.musketeer/registry/tools/loopexec" "$HOME/.musketeer/registry/tools/musketeer"
 
-"$ROOT/target/musketeer-bridge" > /tmp/mbridge.log 2>&1 &
+help_out=$("$ROOT/target/musketeer-bridge" --help)
+printf '%s' "$help_out" | grep -q 'Usage:'
+if printf '%s' "$help_out" | grep -qi 'listening on'; then
+  echo "FAIL help triggered server log" >&2
+  exit 1
+fi
+if curl -fsS "http://127.0.0.1:${PORT}/v1/health" >/dev/null 2>&1; then
+  echo "FAIL help path started a server" >&2
+  exit 1
+fi
+printf 'PASS help does not start server\n'
+
+"$ROOT/target/musketeer-bridge" serve > /tmp/mbridge.log 2>&1 &
 PID=$!
 trap 'kill $PID >/dev/null 2>&1 || true' EXIT
 sleep 1
@@ -41,7 +60,7 @@ cp "$ROOT/registry-examples/tools/musketeer/0.1.1/tool.json" "$HOME/.musketeer/r
 
 kill $PID || true
 sleep 1
-"$ROOT/target/musketeer-bridge" > /tmp/mbridge.log 2>&1 &
+"$ROOT/target/musketeer-bridge" serve > /tmp/mbridge.log 2>&1 &
 PID=$!
 sleep 1
 

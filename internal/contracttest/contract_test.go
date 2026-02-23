@@ -3,11 +3,13 @@ package contracttest
 import (
 	"bytes"
 	"encoding/json"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"musketeer-bridge/internal/config"
@@ -31,6 +33,15 @@ func buildFakeCLI(t *testing.T, outPath string) {
 	cmd.Dir = filepath.Clean(filepath.Join("..", ".."))
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("build fakecli failed: %v\n%s", err, string(out))
+	}
+}
+
+func buildBridgeCLI(t *testing.T, outPath string) {
+	t.Helper()
+	cmd := exec.Command("go", "build", "-o", outPath, "./cmd/musketeer-bridge")
+	cmd.Dir = filepath.Clean(filepath.Join("..", ".."))
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("build bridge failed: %v\n%s", err, string(out))
 	}
 }
 
@@ -209,4 +220,36 @@ func TestContractAllowlistRejected(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(rd, "result.json")); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestContractHelpDoesNotBind(t *testing.T) {
+	bin := filepath.Join(t.TempDir(), "musketeer-bridge")
+	buildBridgeCLI(t, bin)
+
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := ln.Addr().String()
+	_ = ln.Close()
+
+	cmd := exec.Command(bin, "--help")
+	cmd.Env = append(os.Environ(), "MUSKETEER_BRIDGE_LISTEN_ADDR="+addr)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("help failed: %v\n%s", err, string(out))
+	}
+	text := string(out)
+	if !strings.Contains(text, "Usage:") {
+		t.Fatalf("missing usage marker: %s", text)
+	}
+	if strings.Contains(strings.ToLower(text), "listening on") {
+		t.Fatalf("help emitted listening log: %s", text)
+	}
+
+	ln2, err := net.Listen("tcp", addr)
+	if err != nil {
+		t.Fatalf("expected port free after help, bind failed: %v", err)
+	}
+	_ = ln2.Close()
 }
