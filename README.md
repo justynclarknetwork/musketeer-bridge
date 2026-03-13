@@ -1,6 +1,8 @@
 # musketeer-bridge
 
-Local localhost daemon that exposes a static tool registry and deterministic CLI execution with allowlisted cwd, strict JSON mode, and on-disk run logs.
+Local daemon for Musketeer governed execution. Exposes a static tool registry and deterministic CLI execution with allowlisted roots, strict JSON mode, and on-disk run logs.
+
+Musketeer-bridge sits at the runtime layer. It does not govern the work cycle - [Musketeer](https://musketeer.dev) does that. The bridge executes bounded tool invocations on behalf of the harness, with full audit trails.
 
 ## Config
 
@@ -59,11 +61,11 @@ Logs are written for every `POST /run`, including validation rejections.
 
 ## Security model
 
-- no shell execution; argv only
+- No shell execution; argv only
 - cwd must be inside allowlisted roots
-- env passed through allowlist only
+- Env passed through allowlist only
 - stdout and stderr captured separately
-- when `json_mode=true` and `mode=json`, stdout must be exactly one JSON object
+- When `json_mode=true` and `mode=json`, stdout must be exactly one JSON object
 
 ## Acceptance commands
 
@@ -77,23 +79,22 @@ Logs are written for every `POST /run`, including validation rejections.
 
 ## TODO (not executed)
 
-- add optional streaming stderr endpoint or SSE
-- add MCP adapter layer (discovery and call forwarding)
-- add artifact detection and sha256 hashing
-- add semver parsing for version selection
-- add optional auth token even on localhost
+- Add optional streaming stderr endpoint or SSE
+- Add MCP adapter layer (discovery and call forwarding)
+- Add artifact detection and SHA256 hashing
+- Add semver parsing for version selection
+- Add optional auth token even on localhost
 
 ## Contract tests
 
 Contract tests lock three invariants:
-- strict JSON parsing behavior for json_mode tools
+- Strict JSON parsing behavior for json_mode tools
 - exit_code always present in responses
-- run logs always written for POST /run (including failures)
+- Run logs always written for POST /run (including failures)
 
 Run:
 - `go test ./...`
 - `go test ./... -run Contract -count=1`
-
 
 ## Registry examples
 

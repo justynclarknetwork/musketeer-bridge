@@ -1,0 +1,4 @@
+168677584f5dbad79b23a8adddbdbba5db8e47805937366b668e2eefe56be643  musketeer-bridge_v0.1.1_darwin_arm64.tar.gz
+bbb603f46b42a8bb3d5effd9f087103235f757a3d01bfbdf9de308b843bc833e  musketeer-bridge_v0.1.1_darwin_amd64.tar.gz
+6b80e94932ecc2746fd03877518382fd42f2c7201abf596aa74d69397913eeb8  musketeer-bridge_v0.1.1_linux_amd64.tar.gz
+46566884bab6760cb954be0cee6035dbbcf55752182a9bf8c8a6dd365266d9c0  musketeer-bridge_v0.1.1_windows_amd64.zip
