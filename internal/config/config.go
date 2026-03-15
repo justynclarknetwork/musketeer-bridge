@@ -2,10 +2,21 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 )
+
+// ConfigError is a structured startup failure. Code is machine-readable; Message is human-readable.
+type ConfigError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+func (e *ConfigError) Error() string {
+	b, _ := json.Marshal(e)
+	return string(b)
+}
 
 type Config struct {
 	ListenAddr       string   `json:"listen_addr"`
@@ -41,7 +52,10 @@ func Load() (Config, error) {
 	p := filepath.Join(h, ".musketeer", "bridge.json")
 	if b, err := os.ReadFile(p); err == nil {
 		if err := json.Unmarshal(b, &cfg); err != nil {
-			return cfg, errors.New("ERR_CONFIG_INVALID")
+			return cfg, &ConfigError{
+				Code:    "ERR_CONFIG_INVALID",
+				Message: fmt.Sprintf("bridge.json parse error: %s", err.Error()),
+			}
 		}
 	}
 	if v := os.Getenv("MUSKETEER_BRIDGE_LISTEN_ADDR"); v != "" {

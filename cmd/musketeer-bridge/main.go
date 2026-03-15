@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -18,9 +19,19 @@ func usage() string {
 	return "Usage:\n  musketeer-bridge serve\n  musketeer-bridge help\n  musketeer-bridge --help\n"
 }
 
+func fatalStructured(code, message string) {
+	b, _ := json.Marshal(map[string]string{"level": "fatal", "code": code, "message": message})
+	fmt.Fprintln(os.Stderr, string(b))
+	os.Exit(1)
+}
+
 func serve() error {
 	cfg, err := config.Load()
 	if err != nil {
+		var ce *config.ConfigError
+		if errors.As(err, &ce) {
+			fatalStructured(ce.Code, ce.Message)
+		}
 		return err
 	}
 	if err := os.MkdirAll(cfg.RunsDir, 0o755); err != nil {
