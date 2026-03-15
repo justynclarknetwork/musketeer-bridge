@@ -2,7 +2,16 @@
 
 Local daemon for Musketeer governed execution. Exposes a static tool registry and deterministic CLI execution with allowlisted roots, strict JSON mode, and on-disk run logs.
 
-Musketeer-bridge sits at the runtime layer. It does not govern the work cycle - [Musketeer](https://musketeer.dev) does that. The bridge executes bounded tool invocations on behalf of the harness, with full audit trails.
+The bridge executes bounded tool invocations on behalf of a SMALL-governed Musketeer workspace, with full audit trails.
+
+## Architecture
+
+The bridge operates within a layered workspace model:
+
+- **`.small/`** contains canonical execution state (intent, constraints, plan, progress, handoff). This directory is owned by the SMALL protocol. The bridge does not read from or write to `.small/` directly.
+- **`.musketeer/`** contains execution-layer state owned by Musketeer: packets, verdicts, run history, and bridge logs. The bridge writes execution logs here.
+
+The bridge delegates governance to the Musketeer CLI. When the CLI reads canonical state from `.small/`, bridge behavior follows automatically.
 
 ## Quick start (from clean clone)
 
