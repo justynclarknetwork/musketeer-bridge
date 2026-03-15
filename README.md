@@ -1,5 +1,10 @@
 # musketeer-bridge
 
+[![CI](https://github.com/justynclarknetwork/musketeer-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/justynclarknetwork/musketeer-bridge/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/justynclarknetwork/musketeer-bridge)](https://github.com/justynclarknetwork/musketeer-bridge/releases/tag/v0.3.0)
+[![Go Version](https://img.shields.io/badge/go-1.21%2B-blue)](https://go.dev)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Local daemon for Musketeer governed execution. Exposes a static tool registry and deterministic CLI execution with allowlisted roots, strict JSON mode, and on-disk run logs.
 
 The bridge executes bounded tool invocations on behalf of a SMALL-governed Musketeer workspace, with full audit trails.
