@@ -1,4 +1,4 @@
-# Release Notes - v0.1.0
+# Release Notes - v0.2.0
 
 ## What this release guarantees
 
