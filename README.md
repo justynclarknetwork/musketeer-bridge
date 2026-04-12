@@ -1,9 +1,12 @@
 # musketeer-bridge
 
 [![CI](https://github.com/justynclarknetwork/musketeer-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/justynclarknetwork/musketeer-bridge/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/justynclarknetwork/musketeer-bridge)](https://github.com/justynclarknetwork/musketeer-bridge/releases/tag/v0.3.0)
-[![Go Version](https://img.shields.io/badge/go-1.21%2B-blue)](https://go.dev)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/justynclarknetwork/musketeer-bridge)](https://github.com/justynclarknetwork/musketeer-bridge/releases)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/justynclarknetwork/musketeer-bridge)](https://github.com/justynclarknetwork/musketeer-bridge/blob/main/go.mod)
+
+[![Go](https://img.shields.io/badge/stack-Go-00ADD8?logo=go&logoColor=white)](https://go.dev)
+[![HTTP JSON API](https://img.shields.io/badge/interface-HTTP%20JSON-0A66C2)](#endpoints)
+[![SMALL-governed](https://img.shields.io/badge/workspace-SMALL--governed-4C1D95)](#architecture)
 
 Local daemon for Musketeer governed execution. Exposes a static tool registry and deterministic CLI execution with allowlisted roots, strict JSON mode, and on-disk run logs.
 
@@ -22,10 +25,10 @@ The bridge delegates governance to the Musketeer CLI. When the CLI reads canonic
 
 ### 1. Install
 
-Build from source (requires Go 1.21+):
+Build from source (requires Go 1.25.1+):
 
 ```sh
-git clone https://github.com/justyn-clark/musketeer-bridge
+git clone https://github.com/justynclarknetwork/musketeer-bridge.git
 cd musketeer-bridge
 go build -o target/musketeer-bridge ./cmd/musketeer-bridge
 ```
@@ -152,12 +155,12 @@ Environment overrides:
 
 ## Operational boundaries
 
-- **Timeout**: Every tool execution is bounded by `max_runtime_ms` using a context deadline. Exceeded → `ERR_TIMEOUT`, exit code 124.
-- **Allowlist**: `cwd` in the run request must be under an `allowlisted_roots` entry. Symlinks are resolved before comparison. Rejected → `ERR_CWD_NOT_ALLOWLISTED`, exit code 40.
+- **Timeout**: Every tool execution is bounded by `max_runtime_ms` using a context deadline. Exceeded -> `ERR_TIMEOUT`, exit code 124.
+- **Allowlist**: `cwd` in the run request must be under an `allowlisted_roots` entry. Symlinks are resolved before comparison. Rejected -> `ERR_CWD_NOT_ALLOWLISTED`, exit code 40.
 - **Env filtering**: Only keys in `env_allowlist` are passed to tool processes. Request env keys not in the allowlist are silently dropped.
 - **No shell**: Tools are executed directly via argv. No shell interpolation.
 - **Stdout size**: No hard limit. Stdout is captured in memory; keep tool output bounded.
-- **Strict JSON mode**: When `json_mode: true` and request `mode: "json"`, stdout must be exactly one JSON object (not array, not multiple values). Violations → `ERR_STDOUT_NOT_JSON`, exit code 40.
+- **Strict JSON mode**: When `json_mode: true` and request `mode: "json"`, stdout must be exactly one JSON object (not array, not multiple values). Violations -> `ERR_STDOUT_NOT_JSON`, exit code 40.
 
 ## Endpoints
 
