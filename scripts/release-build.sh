@@ -6,10 +6,6 @@ if [ -z "$TAG" ]; then
   echo "ERROR: must run at an exact tag" >&2
   exit 1
 fi
-if [ "$TAG" != "v0.1.0" ]; then
-  echo "ERROR: expected tag v0.1.0, got $TAG" >&2
-  exit 1
-fi
 VERSION="${TAG#v}"
 DIST="dist"
 rm -rf "$DIST"
