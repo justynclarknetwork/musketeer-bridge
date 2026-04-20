@@ -16,6 +16,7 @@
 - Execution timeout is enforced via `max_runtime_ms` (default 10 minutes). Exceeded processes return `ERR_TIMEOUT` with exit code 124.
 - Config is loaded from `~/.musketeer/bridge.json` with safe defaults. Invalid JSON in the config file causes a structured startup failure (`ERR_CONFIG_INVALID`).
 - `musketeer-bridge --help` or `help` exits 0 without binding the listen address.
+- `scripts/release-build.sh` now builds from any exact checked-out tag instead of rejecting tags that are not hard-coded to `v0.1.0`.
 
 ## Structured error codes
 
