@@ -8,9 +8,9 @@
 [![HTTP JSON API](https://img.shields.io/badge/interface-HTTP%20JSON-0A66C2)](#endpoints)
 [![SMALL-governed](https://img.shields.io/badge/workspace-SMALL--governed-4C1D95)](#architecture)
 
-Local daemon for Musketeer governed execution. Exposes a static tool registry and deterministic CLI execution with allowlisted roots, strict JSON mode, and on-disk run logs.
+Optional local daemon for bounded tool execution in a Musketeer workspace. It exposes a static tool registry and deterministic CLI execution with allowlisted roots, strict JSON mode, and on-disk run logs.
 
-The bridge executes bounded tool invocations on behalf of a SMALL-governed Musketeer workspace, with full audit trails.
+The bridge executes bounded tool invocations on behalf of a SMALL-governed Musketeer workspace, with full audit trails. It is not Musketeer itself, and the core Musketeer CLI does not require the bridge for normal workspace operations.
 
 ## Architecture
 
